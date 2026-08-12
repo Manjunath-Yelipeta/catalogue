@@ -4,8 +4,8 @@ pipeline {
     }
     environment { 
         def appVersion= ""
-        account_id = "578257748163"
-        service_name = "catalogue"
+        acc_id = "578257748163"
+        component = "catalogue"
         project = "roboshop"
     }
     options {
