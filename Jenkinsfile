@@ -51,17 +51,6 @@ pipeline {
             }
         }
         }
-
-        stage("docker push") {
-            steps {
-                echo 'docker push..'
-                script {
-                sh """
-                    docker push catalogue:${appVersion}
-                """
-            }
-        }
-        }
         stage('pre-build') {
             steps {
                 echo 'Pre-build..'
