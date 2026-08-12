@@ -3,7 +3,7 @@ pipeline {
         label 'ROBOSHOP' 
     }
     environment { 
-        appVersion= ""
+        def appVersion= ""
     }
     options {
         disableConcurrentBuilds()
@@ -29,6 +29,38 @@ pipeline {
                     echo "Version: ${appVersion}"
                 }
             }
+        }
+        stage('npm install') {
+            steps {
+                echo 'npm install..'
+                script {
+                sh """
+                    npm install
+                """
+            }
+        }
+        }
+
+        stage("docker build") {
+            steps {
+                echo 'docker build..'
+                script {
+                sh """
+                    docker build -t catalogue:${appVersion} .
+                """
+            }
+        }
+        }
+
+        stage("docker push") {
+            steps {
+                echo 'docker push..'
+                script {
+                sh """
+                    docker push catalogue:${appVersion}
+                """
+            }
+        }
         }
         stage('pre-build') {
             steps {
