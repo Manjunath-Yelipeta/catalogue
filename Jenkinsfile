@@ -47,13 +47,10 @@ pipeline {
         stage('SonarQube Analysis') {
             steps {
                 // 'MySonarServer' must match the installation name in Jenkins System Configuration
-                withSonarQubeEnv('MySonarServer') {
+                withSonarQubeEnv('sonar-server') {
                     script {
                         sh """
-                            ${SCANNER_HOME}/bin/sonar-scanner \
-                            -Dsonar.projectKey=my-app-key \
-                            -Dsonar.sources=src \
-                            -Dsonar.java.binaries=target/classes
+                            ${SCANNER_HOME}/bin/sonar-scanner
                         """
                     }
                 }
