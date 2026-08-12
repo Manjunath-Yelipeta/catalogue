@@ -4,6 +4,9 @@ pipeline {
     }
     environment { 
         def appVersion= ""
+        account_id = "578257748163"
+        service_name = "catalogue"
+        project = "roboshop"
     }
     options {
         disableConcurrentBuilds()
@@ -41,16 +44,22 @@ pipeline {
         }
         }
 
-        stage("docker build") {
+        stage('AWS Operations') {
             steps {
-                echo 'docker build..'
-                script {
-                sh """
-                    docker build -t catalogue:${appVersion} .
-                """
+                // The plugin sets up the environment variables automatically
+                withAWS(credentials: 'aws-id', region: 'us-east-1') {
+                    script {
+                        sh """
+                            aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin ${acc_id}.dkr.ecr.us-east-1.amazonaws.com
+                            docker build -t ${acc_id}.dkr.ecr.us-east-1.amazonaws.com/${project}/${component}:${appVersion} .
+                            docker push ${acc_id}.dkr.ecr.us-east-1.amazonaws.com/${project}/${component}:${appVersion}
+                        """
+                    }
+                }
             }
         }
-        }
+
+
         stage('pre-build') {
             steps {
                 echo 'Pre-build..'
