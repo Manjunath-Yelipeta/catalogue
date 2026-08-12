@@ -7,6 +7,7 @@ pipeline {
         acc_id = "578257748163"
         component = "catalogue"
         project = "roboshop"
+        SCANNER_HOME = "sonar-8"
     }
     options {
         disableConcurrentBuilds()
@@ -43,8 +44,23 @@ pipeline {
             }
         }
         }
+        stage('SonarQube Analysis') {
+            steps {
+                // 'MySonarServer' must match the installation name in Jenkins System Configuration
+                withSonarQubeEnv('MySonarServer') {
+                    script {
+                        sh """
+                            ${SCANNER_HOME}/bin/sonar-scanner \
+                            -Dsonar.projectKey=my-app-key \
+                            -Dsonar.sources=src \
+                            -Dsonar.java.binaries=target/classes
+                        """
+                    }
+                }
+            }
+        }
 
-        stage('AWS Operations') {
+        stage('Docker Build and Push') {
             steps {
                 // The plugin sets up the environment variables automatically
                 withAWS(credentials: 'aws-id', region: 'us-east-1') {
