@@ -44,18 +44,15 @@ pipeline {
             }
         }
         }
-        stage('SonarQube Analysis') {
+         stage('SonarQube Analysis') {
             steps {
-                // 'MySonarServer' must match the installation name in Jenkins System Configuration
+                // 'My SonarQube Server' must match the name configured in Jenkins System Settings
                 withSonarQubeEnv('sonar-server') {
-                    script {
-                        sh """
-                            ${SCANNER_HOME}/bin/sonar-scanner
-                        """
-                    }
+                    sh "${tool 'sonar-8'}/bin/sonar-scanner"
                 }
             }
         }
+        
 
         stage('Docker Build and Push') {
             steps {
