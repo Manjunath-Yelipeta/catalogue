@@ -44,6 +44,17 @@ pipeline {
             }
         }
         }
+
+          // this command gives us coverage report and test cases report, sonarqube access this to check quality gate
+        stage('Unit tests') {
+            steps {
+                script {
+                    sh """
+                        npm test
+                    """
+                } 
+            }
+        }
          stage('SonarQube Analysis') {
             steps {
                 // 'My SonarQube Server' must match the name configured in Jenkins System Settings
@@ -52,6 +63,19 @@ pipeline {
                 }
             }
         }
+
+        stage('SonarQube Quality Gate') {
+            steps {
+                timeout(time: 10, unit: 'MINUTES') {
+                    script {
+                        def qg = waitForQualityGate() // Pauses pipeline
+                        if (qg.status != 'OK') {
+                            error "Pipeline aborted: ${qg.status}"
+                        }
+                    }
+                }
+            }
+        } 
         
 
         stage('Docker Build and Push') {
