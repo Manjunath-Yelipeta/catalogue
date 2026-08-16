@@ -129,7 +129,7 @@ pipeline {
             }
         }
 
-        tage('Docker Push') {
+        stage('Docker Ecr Push') {
             steps {
                 // The plugin sets up the environment variables automatically
                 withAWS(credentials: 'aws-id', region: 'us-east-1') {
