@@ -77,6 +77,20 @@ pipeline {
             }
         } 
          */
+         stage('Ensure ECR Repository') {
+            steps {
+                withAWS(credentials: 'aws-id', region: 'us-east-1') {
+                    sh """
+                        aws ecr describe-repositories \
+                        --repository-names ${project}/${component} \
+                        --region us-east-1 \
+                        || aws ecr create-repository \
+                        --repository-name ${project}/${component} \
+                        --region us-east-1
+                    """
+                }
+            }
+        }
 
         stage('Docker Build ') {
             steps {
