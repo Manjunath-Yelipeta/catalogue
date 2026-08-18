@@ -91,6 +91,61 @@ pipeline {
                 }
             }
         }
+        stage('Dependabot Scan') {
+            steps {
+                withCredentials([
+                    string(
+                        credentialsId: 'github-pat',
+                        variable: 'GITHUB_TOKEN'
+                    )
+                ]) {
+                    sh '''
+                        set +x
+
+                        curl --fail --silent --show-error --location \
+                        -H "Accept: application/vnd.github+json" \
+                        -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+                        -H "X-GitHub-Api-Version: 2026-03-10" \
+                        "https://api.github.com/repos/Manjunath-Yelipeta/catalogue/dependabot/alerts?state=open&per_page=100" \
+                        -o dependabot-alerts.json
+
+                        echo "Open Dependabot alerts:"
+                        jq -r '
+                        .[] |
+                        [
+                            .number,
+                            .security_advisory.severity,
+                            .dependency.package.name,
+                            .security_advisory.ghsa_id,
+                            .html_url
+                        ] |
+                        @tsv
+                        ' dependabot-alerts.json
+
+                        HIGH_CRITICAL_COUNT=$(jq '
+                        [
+                            .[] |
+                            select(
+                            .security_advisory.severity == "high" or
+                            .security_advisory.severity == "critical"
+                            )
+                        ] |
+                        length
+                        ' dependabot-alerts.json)
+
+                        echo "Open HIGH/CRITICAL alerts: ${HIGH_CRITICAL_COUNT}"
+
+                        if [ "${HIGH_CRITICAL_COUNT}" -gt 0 ]; then
+                            echo "Pipeline failed: HIGH or CRITICAL Dependabot alerts found."
+                            exit 1
+                        fi
+
+                        echo "Dependabot scan passed."
+                    '''
+                }
+            }
+
+    
 
         stage('Docker Build ') {
             steps {
@@ -212,6 +267,10 @@ pipeline {
         post { 
         always { 
             echo 'I will always say Hello again!'
+            archiveArtifacts(
+                artifacts: 'dependabot-alerts.json',
+                allowEmptyArchive: true
+            )
         }
         success { 
             echo 'I will say Hello only if successful'
@@ -220,5 +279,7 @@ pipeline {
             echo 'I will say Bye only if failure'
         }
     }
+    
+}
 }
     
